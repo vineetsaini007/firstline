@@ -203,8 +203,17 @@ $('clear-resume').addEventListener('click', () => {
 
 const draftText = () => `Subject: ${$('subject').value}\n\n${$('email-body').value}`;
 $('copy-button').addEventListener('click', async () => {
-  try { await navigator.clipboard.writeText(draftText()); toast('Email copied'); }
-  catch { $('email-body').focus(); $('email-body').select(); toast('Clipboard unavailable. Select and copy the email manually.'); }
+  const text = draftText();
+  try {
+    await Promise.race([navigator.clipboard.writeText(text), new Promise((_, reject) => setTimeout(() => reject(new Error('Clipboard timeout')), 1500))]);
+    toast('Email copied');
+  } catch {
+    const temporary = document.createElement('textarea');
+    temporary.value = text; temporary.className = 'sr-only'; document.body.append(temporary); temporary.select();
+    const copied = document.execCommand('copy'); temporary.remove();
+    if (copied) toast('Email copied');
+    else { $('email-body').focus(); $('email-body').select(); toast('Clipboard unavailable. Select and copy the email manually.'); }
+  }
 });
 $('download-button').addEventListener('click', () => {
   const url = URL.createObjectURL(new Blob([draftText()], { type: 'text/plain;charset=utf-8' }));
