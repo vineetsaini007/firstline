@@ -72,7 +72,7 @@ export async function generateEmail(input, { apiKey, model, fetchImpl = fetch })
     const content = raw?.replace(/^\s*```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '');
     const result = outputSchema.parse(JSON.parse(content));
     const wordCount = result.body.split(/\s+/).filter(Boolean).length;
-    if (wordCount > (input.length === 'brief' ? 100 : 135)) throw new Error('Email too long');
+    if (wordCount > (input.length === 'brief' ? 90 : 120)) throw new Error('Email too long');
     return { ...result, model: data.model || model, wordCount };
   } catch {
     throw new AppError(502, 'The model returned an incomplete or overly long draft. Please try again. Your inputs have been kept.');

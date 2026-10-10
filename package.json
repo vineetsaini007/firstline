@@ -11,6 +11,8 @@
     "test": "node --test",
     "check": "node --check server/index.js && node --check server/app.js && node --check server/generation.js && node --check public/app.js"
   },
+  "overrides": { "mammoth": { "argparse": "^2.0.1" } },
+  "devDependencies": { "jszip": "^3.10.1" },
   "dependencies": {
     "express": "^5.3.0",
     "express-rate-limit": "^8.0.0",

@@ -21,7 +21,7 @@ export function createApp({ env = process.env, fetchImpl = fetch } = {}) {
   if (env.NODE_ENV === 'production') app.set('trust proxy', 1);
   app.use(helmet({ contentSecurityPolicy: { directives: { 'script-src': ["'self'"], 'style-src': ["'self'"], 'img-src': ["'self'", 'data:'], 'connect-src': ["'self'"], 'font-src': ["'self'"], 'upgrade-insecure-requests': env.NODE_ENV === 'production' ? [] : null } } }));
   app.use('/api', (req, res, next) => { res.set('Cache-Control', 'no-store'); next(); });
-  app.use(express.json({ limit: '64kb' }));
+  app.use(express.json({ limit: '256kb' }));
   app.use('/api', (req, res, next) => {
     if (req.method === 'POST' && req.headers.origin) {
       let origin;
@@ -41,7 +41,7 @@ export function createApp({ env = process.env, fetchImpl = fetch } = {}) {
   app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
   app.get('/api/config', (req, res) => res.json({ configured: Boolean(env.OPENROUTER_API_KEY), protected: Boolean(env.APP_PASSWORD), authenticated: authenticated(req), model: env.OPENROUTER_MODEL || 'openrouter/free' }));
   app.post('/api/unlock', rateLimit({ windowMs: 15 * 60000, limit: 10, standardHeaders: 'draft-8', legacyHeaders: false, message: { error: 'Too many password attempts. Try again in 15 minutes.' } }), (req, res) => {
-    if (!env.APP_PASSWORD || !equal(req.body?.password, env.APP_PASSWORD)) return res.status(401).json({ error: 'That password doesn’t match. Try again.' });
+    if (!env.APP_PASSWORD || typeof req.body?.password !== 'string' || !equal(req.body.password, env.APP_PASSWORD)) return res.status(401).json({ error: 'That password doesn’t match. Try again.' });
     const expires = String(Date.now() + 12 * 3600000);
     res.cookie('firstline_session', `${expires}.${signature(expires)}`, { httpOnly: true, secure: env.NODE_ENV === 'production', sameSite: 'strict', maxAge: 12 * 3600000, path: '/' });
     res.json({ ok: true });
@@ -57,7 +57,11 @@ export function createApp({ env = process.env, fetchImpl = fetch } = {}) {
       } else if (extension === 'pdf') {
         if (!req.file.buffer.subarray(0, 5).equals(Buffer.from('%PDF-'))) throw new Error('Invalid PDF');
         const parser = new PDFParse({ data: new Uint8Array(req.file.buffer) });
-        try { text = (await parser.getText()).text; } finally { await parser.destroy(); }
+        try {
+          const info = await parser.getInfo();
+          if (info.total > 20) throw new AppError(422, 'Use a resume with 20 pages or fewer, or paste the relevant text.');
+          text = (await parser.getText()).text;
+        } finally { await parser.destroy(); }
       } else if (extension === 'docx') {
         if (req.file.buffer[0] !== 0x50 || req.file.buffer[1] !== 0x4b) throw new Error('Invalid DOCX');
         text = (await mammoth.extractRawText({ buffer: req.file.buffer })).value;
