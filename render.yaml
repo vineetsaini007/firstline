@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: firstline
+    runtime: node
+    plan: free
+    buildCommand: npm ci --omit=dev
+    startCommand: npm start
+    healthCheckPath: /api/health
+    autoDeployTrigger: commit
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: OPENROUTER_MODEL
+        value: openrouter/free
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: APP_PASSWORD
+        sync: false
+      - key: DAILY_GENERATION_LIMIT
+        value: 45
