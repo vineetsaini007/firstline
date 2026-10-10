@@ -12,9 +12,9 @@ const input = {
 };
 const draft = {
   subject: 'Frontend Engineer at Acme — Alex',
-  body: 'Hi Acme team,\n\nI’m Alex, and I’m interested in your Frontend Engineer position. I built a React and TypeScript dashboard for 200 users and reduced load time from 4 seconds to 1.5 seconds. Your focus on accessible interfaces and performance fits the work I enjoy.\n\nI’d welcome the chance to discuss how I could contribute to your team. Would you be open to a brief conversation?\n\nBest,\nAlex',
+  body: 'Hi Acme team,\n\nI’m Alex, and I’m interested in your Frontend Engineer position. Your need for React and TypeScript interfaces connects with my dashboard built for 200 users. I also reduced page load times from 4 seconds to 1.5 seconds, relevant to your performance focus.\n\nI’d welcome the chance to discuss how I could contribute to your team. Would you be open to a brief conversation?\n\nBest,\nAlex',
   alternatives: ['An introduction for your frontend team', 'React and TypeScript experience — Alex'],
-  matches: [{ requirement: 'React and TypeScript', evidence: 'Built a React and TypeScript dashboard for 200 users.' }], note: '',
+  matches: [{ requirement: 'React and TypeScript interfaces', evidence: 'Built a React and TypeScript dashboard for 200 users.', focus: 'React and TypeScript', connection: 'Your need for React and TypeScript interfaces connects with my dashboard built for 200 users.' }], note: '',
 };
 const provider = content => async () => new Response(JSON.stringify({ model: 'example/model:free', choices: [{ finish_reason: 'stop', message: { content: JSON.stringify(content) } }] }), { headers: { 'Content-Type': 'application/json' } });
 async function serve(t, options = {}) {
@@ -66,6 +66,25 @@ test('never calls a paid model', async () => {
   let calls = 0;
   await assert.rejects(generateEmail(input, { apiKey: 'test', model: 'paid/model', fetchImpl: async () => { calls++; } }), /Only free models/);
   assert.equal(calls, 0);
+});
+test('rejects fabricated source quotes, disconnected emails, and stale connections from a different JD', async () => {
+  const options = { apiKey: 'test', model: 'openrouter/free' };
+  const match = draft.matches[0];
+  for (const changed of [
+    { ...match, requirement: 'React and TypeScript interfaces with GraphQL' },
+    { ...match, evidence: 'Built a React dashboard for 20,000 users.' },
+    { ...match, connection: 'My work with React and TypeScript is impressive and relevant to your company.' },
+    { ...match, focus: 'GraphQL' },
+  ]) {
+    await assert.rejects(generateEmail(input, { ...options, fetchImpl: provider({ ...draft, matches: [changed] }) }), /did not clearly connect/);
+  }
+  await assert.rejects(generateEmail({ ...input, jobDescription: 'Build Python data pipelines and collaborate with analysts to maintain reliable warehouse reporting.' }, { ...options, fetchImpl: provider(draft) }), /did not clearly connect/);
+  await assert.rejects(generateEmail(input, { ...options, fetchImpl: provider({ ...draft, matches: [] }) }), /incomplete/);
+});
+test('grounds connections in extra context without a resume and tolerates source line wrapping', async () => {
+  const contextInput = { ...input, resume: '', context: 'Built a React and TypeScript\ndashboard for 200 users. Reduced page load times from 4 seconds to 1.5 seconds.' };
+  const result = await generateEmail(contextInput, { apiKey: 'test', model: 'openrouter/free', fetchImpl: provider(draft) });
+  assert.equal(result.matches[0].connection, draft.matches[0].connection);
 });
 test('handles provider limits, malformed output, truncated output and overlong drafts honestly', async () => {
   await assert.rejects(generateEmail(input, { apiKey: 'test', model: 'openrouter/free', fetchImpl: async () => new Response('', { status: 429 }) }), /free AI limit/);

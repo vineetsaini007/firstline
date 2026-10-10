@@ -12,9 +12,10 @@ Firstline turns a resume and a job description into a concise, personal cold ema
 - PDF, DOCX, and TXT resume uploads, processed in memory. Extracted text is editable before generation.
 - Professional, warm, and confident tones; 60–90 or 90–120 word drafts.
 - Free OpenRouter models only. Default: `openrouter/free`. Paid model IDs are rejected and provider token prices are capped at zero.
-- Editable subject and body, alternative subjects, evidence matched to job requirements, new versions, short drafts, copy, and text download.
+- Editable subject and body, alternative subjects, new versions, short drafts, copy, and text download.
+- Explicit JD-to-experience connections in the email, with expandable verbatim JD/resume evidence and the corresponding email sentence. The server checks that source quotes and the cited sentence exist.
 - Clearly labeled fictional example for exploring the product without an API key.
-- Responsive layout, accessible labels and controls, reduced-motion support, and no external fonts or trackers.
+- Calmer desktop layout with collapsible context steps, a scrollable input area, and a visible generate action; natural page scrolling on mobile. Accessible labels and controls, reduced-motion support, and no external fonts or trackers.
 - Server-side API key, validation, request limits, optional shared password, and security headers.
 
 ## Local development
@@ -88,4 +89,4 @@ Firstline parses uploads in memory and does not persist resumes, context, drafts
 
 PDFs must contain extractable text and have 20 pages or fewer. Scanned PDFs need pasted resume text. Files must be at most 5 MB. Legacy `.doc` files are unsupported.
 
-The prompt instructs models to use supplied evidence and avoid invented qualifications. AI can still make mistakes: review all claims before sending. Firstline does not predict or guarantee interviews. The server rejects malformed, truncated, or overly long drafts; it does not retry automatically or quietly return a template.
+The prompt selects evidence against the specific JD and requires an explicit connection in the email body. The server verifies verbatim source quotes, a shared JD focus phrase, and the cited sentence in the body. These checks establish traceability, not semantic correctness: AI can still misinterpret evidence, so review all claims before sending. Firstline does not predict or guarantee interviews. The server rejects malformed, truncated, overly long, or ungrounded drafts; it does not retry automatically or quietly return a template.
