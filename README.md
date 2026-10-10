@@ -2,6 +2,8 @@
 
 A short email. A real connection.
 
+**[Open Firstline](https://firstline-q9go.onrender.com)** · [Source on GitHub](https://github.com/vineetsaini007/firstline)
+
 Firstline turns a resume and a job description into a concise, personal cold email. An Apple-inspired workspace puts real experience, job context, and an editable draft side by side.
 
 ## Features
@@ -75,6 +77,8 @@ npm audit --omit=dev
 ```
 
 Tests use an injected mock provider and real PDF/DOCX/TXT extraction. They do not call OpenRouter or consume your quota. They cover authentication, input validation, free-only model routing, daily/per-IP limits, cross-site request rejection, provider failures, output validation, and upload boundaries. Live inference requires a configured key and is a separate deployment verification step.
+
+The first Render deployment was verified on October 10, 2026 with fictional applicant data. OpenRouter returned a real 56-word draft using `nvidia/nemotron-3-super-120b-a12b:free`; copy and text download were verified in the deployed app. The default router may select a different free model on subsequent requests.
 
 Mammoth’s unused command-line parser is overridden to argparse 2 to avoid the older parser’s vulnerable `sprintf-js` dependency. The actual document conversion path is covered by a real DOCX extraction test.
 
