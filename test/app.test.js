@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createApp } from '../server/app.js';
-import { generateEmail } from '../server/generation.js';
+import { generateEmail, formatDraft } from '../server/generation.js';
 import JSZip from 'jszip';
 
 const input = {
@@ -85,6 +85,15 @@ test('grounds connections in extra context without a resume and tolerates source
   const contextInput = { ...input, resume: '', context: 'Built a React and TypeScript\ndashboard for 200 users. Reduced page load times from 4 seconds to 1.5 seconds.' };
   const result = await generateEmail(contextInput, { apiKey: 'test', model: 'openrouter/free', fetchImpl: provider(draft) });
   assert.equal(result.matches[0].connection, draft.matches[0].connection);
+});
+test('formats dense model output with paragraphs, a supplied-name sign-off, and a specific subject', () => {
+  const result = formatDraft({ ...draft, subject: 'An introduction', body: 'Hi Acme team, Your need for React and TypeScript interfaces connects with my dashboard built for 200 users. I’d welcome a brief conversation.' }, input);
+  assert.equal(result.subject, 'Frontend Engineer at Acme — Alex');
+  assert.ok(result.body.startsWith('Hi Acme team,\n\n'));
+  assert.ok(result.body.includes('\n\nI’d welcome'));
+  assert.ok(result.body.endsWith('\n\nBest,\nAlex'));
+  const existing = formatDraft({ ...draft, body: 'Hi Acme team, A brief introduction. Best regards, Alex' }, input);
+  assert.ok(existing.body.endsWith('\n\nBest regards,\nAlex'));
 });
 test('handles provider limits, malformed output, truncated output and overlong drafts honestly', async () => {
   await assert.rejects(generateEmail(input, { apiKey: 'test', model: 'openrouter/free', fetchImpl: async () => new Response('', { status: 429 }) }), /free AI limit/);

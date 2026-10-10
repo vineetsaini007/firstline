@@ -66,6 +66,19 @@ export function validateConnections(result, input) {
   }
 }
 
+export function formatDraft(result, input) {
+  const escapeRegex = value => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const signature = new RegExp(`\\s+(Best(?: regards)?|Kind regards|Regards|Thanks|Thank you|Sincerely),?\\s*${escapeRegex(input.name)}\\s*$`, 'i');
+  let body = result.body.replace(signature, (_, closing) => `\n\n${closing},\n${input.name}`)
+    .replace(/^((?:Hi|Hello|Dear)\b[^,\n]{0,120},)[ \t]+/i, '$1\n\n')
+    .replace(/[ \t]+(?=I[’']d (?:welcome|love)|Would you be open)/g, '\n\n');
+  if (!new RegExp(`${escapeRegex(input.name)}\\s*$`, 'i').test(body)) body += `\n\nBest,\n${input.name}`;
+  const subject = normalizeQuote(result.subject).includes(normalizeQuote(input.company)) &&
+    normalizeQuote(result.subject).includes(normalizeQuote(input.role)) ? result.subject :
+    `${input.role.slice(0, 60)} at ${input.company.slice(0, 55)} — ${input.name.slice(0, 25)}`;
+  return { ...result, subject, body };
+}
+
 export async function generateEmail(input, { apiKey, model, fetchImpl = fetch }) {
   if (!apiKey) throw new AppError(503, 'AI generation is not connected yet. The owner needs to add an OpenRouter API key on the server.');
   if (model !== 'openrouter/free' && !/^[\w.-]+\/[\w.-]+:free$/.test(model)) {
@@ -98,7 +111,7 @@ export async function generateEmail(input, { apiKey, model, fetchImpl = fetch })
     if (data.error || data.choices?.[0]?.finish_reason === 'length') throw new Error('Incomplete response');
     const raw = data.choices?.[0]?.message?.content;
     const content = raw?.replace(/^\s*```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '');
-    const result = outputSchema.parse(JSON.parse(content));
+    const result = formatDraft(outputSchema.parse(JSON.parse(content)), input);
     const wordCount = result.body.split(/\s+/).filter(Boolean).length;
     if (wordCount > (input.length === 'brief' ? 90 : 120)) throw new Error('Email too long');
     validateConnections(result, input);
