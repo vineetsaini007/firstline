@@ -25,8 +25,22 @@ function formError(message, field) {
   $('form-error').textContent = message;
   $('form-error').hidden = !message;
   form.querySelectorAll('[aria-invalid]').forEach(el => el.removeAttribute('aria-invalid'));
-  if (field && $(field)) { $(field).setAttribute('aria-invalid', 'true'); $(field).focus(); }
+  if (field && $(field)) {
+    const element = $(field);
+    revealStep(element.closest('.context-step'));
+    const nestedDetails = element.closest('.resume-details');
+    if (nestedDetails) nestedDetails.open = true;
+    element.setAttribute('aria-invalid', 'true'); element.focus();
+  }
 }
+
+function revealStep(step) {
+  if (!step) return;
+  document.querySelectorAll('.context-step').forEach(other => { other.open = other === step; });
+  step.querySelector('summary').focus({ preventScroll: true });
+  step.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+document.querySelectorAll('[data-next-step]').forEach(button => button.addEventListener('click', () => revealStep($(button.dataset.nextStep))));
 
 async function api(path, body, { multipart = false } = {}) {
   const response = await fetch(path, {
@@ -101,7 +115,15 @@ function renderDraft(result, input) {
     const container = document.createElement('div'); container.className = 'match';
     const title = document.createElement('strong'); title.textContent = match.requirement;
     const evidence = document.createElement('p'); evidence.textContent = match.evidence;
-    container.append(title, evidence); $('matches').append(container);
+    const jdLabel = document.createElement('span'); jdLabel.className = 'match-label'; jdLabel.textContent = 'FROM THE JOB DESCRIPTION';
+    const resumeLabel = document.createElement('span'); resumeLabel.className = 'match-label'; resumeLabel.textContent = 'FROM YOUR RESUME OR CONTEXT';
+    container.append(jdLabel, title, resumeLabel, evidence);
+    if (match.connection) {
+      const emailLabel = document.createElement('span'); emailLabel.className = 'match-label'; emailLabel.textContent = 'CONNECTED IN YOUR EMAIL';
+      const sentence = document.createElement('p'); sentence.className = 'connection-quote'; sentence.textContent = match.connection;
+      container.append(emailLabel, sentence);
+    }
+    $('matches').append(container);
   });
   $('model-note').textContent = result.note;
   $('model-note').hidden = !result.note;
@@ -109,7 +131,7 @@ function renderDraft(result, input) {
   $('connection-status').textContent = `Generated with ${result.model} · free model`;
   countWords();
   $('email-body').style.height = 'auto';
-  $('email-body').style.height = `${Math.max(380, $('email-body').scrollHeight)}px`;
+  $('email-body').style.height = `${Math.max(310, $('email-body').scrollHeight)}px`;
 }
 
 async function generate(override = null) {

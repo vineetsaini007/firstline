@@ -8,6 +8,7 @@
   <title>Firstline — Make a thoughtful first impression.</title>
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/workspace.css">
   <script src="/app.js" defer></script>
 </head>
 <body>
@@ -41,14 +42,16 @@
     <div class="workspace-toolbar"><div><span class="workspace-label">YOUR WORKSPACE</span><span class="workspace-divider"></span><span class="session-label">A fresh introduction</span></div><button id="example-button" class="text-button" type="button"><svg><use href="#i-spark"/></svg>Try an example</button></div>
     <div class="workspace-grid">
       <form id="composer" class="composer" novalidate>
-        <section class="panel context-panel">
-          <div class="panel-heading"><div class="step-number">01</div><div><h2>The opportunity</h2><p>Tell us who you’d like to connect with.</p></div></div>
+        <div class="composer-scroll" aria-label="Application context">
+        <details class="panel context-panel context-step" id="opportunity-step" open>
+          <summary class="panel-heading"><span class="step-number">01</span><span><h2>The opportunity</h2><p>Tell us who you’d like to connect with.</p></span></summary>
           <div class="two-fields"><div class="field"><label for="company">Company <span class="required">*</span></label><input id="company" name="company" placeholder="e.g. Apple" maxlength="150" required autocomplete="organization"></div><div class="field"><label for="role">Position <span class="required">*</span></label><input id="role" name="role" placeholder="e.g. Product Designer" maxlength="150" required></div></div>
           <div class="field jd-field"><div class="label-row"><label for="jobDescription">Job description <span class="required">*</span></label><span id="jd-count">0 / 18,000</span></div><textarea id="jobDescription" name="jobDescription" placeholder="Paste the job description here. Responsibilities, requirements, and a little about the team all help." rows="6" minlength="50" maxlength="18000" required></textarea></div>
           <div class="field"><label for="recipient">Recipient’s name <span class="optional">Optional</span></label><input id="recipient" name="recipient" placeholder="e.g. Sarah — or leave blank for the hiring team" maxlength="100" autocomplete="off"></div>
-        </section>
-        <section class="panel about-panel">
-          <div class="panel-heading"><div class="step-number">02</div><div><h2>Your story</h2><p>Give your introduction something real to say.</p></div></div>
+          <button class="step-next text-button" type="button" data-next-step="story-step">Next: your story <svg><use href="#i-arrow"/></svg></button>
+        </details>
+        <details class="panel about-panel context-step" id="story-step">
+          <summary class="panel-heading"><span class="step-number">02</span><span><h2>Your story</h2><p>Your resume, experience, and personal context.</p></span></summary>
           <div class="two-fields"><div class="field"><label for="name">Your name <span class="required">*</span></label><input id="name" name="name" placeholder="Your full name" maxlength="100" required autocomplete="name"></div><div class="field"><label for="experience">Career stage</label><select id="experience" name="experience"><option value="student">Student / intern</option><option value="early" selected>Early career</option><option value="experienced">Experienced professional</option><option value="career-change">Changing careers</option></select></div></div>
           <input type="file" id="resume-file" accept=".pdf,.docx,.txt" hidden>
           <button class="upload-area" id="upload-button" type="button"><span class="upload-icon"><svg><use href="#i-upload"/></svg></span><span><strong id="upload-title">Drop your resume, or browse</strong><small id="upload-subtitle">PDF, DOCX, or TXT · Up to 5 MB</small></span><span class="upload-plus" aria-hidden="true">+</span></button>
@@ -56,15 +59,19 @@
           <details class="resume-details" id="resume-details"><summary>Or paste your resume text <span aria-hidden="true">⌄</span></summary><div class="field"><label for="resume" class="sr-only">Resume text</label><textarea id="resume" name="resume" placeholder="Paste your resume here, or review the text from your uploaded file." rows="5" maxlength="22000"></textarea><div class="resume-actions"><span>Review extracted text before generating.</span><button id="clear-resume" type="button" class="text-button">Clear resume</button></div></div></details>
           <div class="field"><label for="context">A little extra context <span class="optional">Optional with a resume</span></label><textarea id="context" name="context" placeholder="An achievement you’re proud of, a project that fits this role, or why this opportunity matters to you." rows="3" maxlength="3000"></textarea><p class="field-hint">No resume handy? Add at least 30 characters about your experience here.</p></div>
           <div class="field"><label for="link">Portfolio or LinkedIn <span class="optional">Optional</span></label><input id="link" name="link" type="url" placeholder="https://" maxlength="300" autocomplete="url"></div>
-        </section>
-        <section class="panel preferences-panel">
-          <div class="panel-heading compact"><div class="step-number">03</div><div><h2>Make it sound like you</h2></div></div>
+          <button class="step-next text-button" type="button" data-next-step="preferences-step">Next: tone & length <svg><use href="#i-arrow"/></svg></button>
+        </details>
+        <details class="panel preferences-panel context-step" id="preferences-step">
+          <summary class="panel-heading compact"><span class="step-number">03</span><span><h2>Make it sound like you</h2><p>Choose your tone and email length.</p></span></summary>
           <fieldset><legend>Tone</legend><div class="segmented"><label><input type="radio" name="tone" value="professional" checked><span>Professional</span></label><label><input type="radio" name="tone" value="warm"><span>Warm</span></label><label><input type="radio" name="tone" value="confident"><span>Confident</span></label></div></fieldset>
           <fieldset class="length-options"><legend>Length</legend><label><input type="radio" name="length" value="brief" checked><span>Short & focused<small>60–90 words</small></span></label><label><input type="radio" name="length" value="balanced"><span>A little more detail<small>90–120 words</small></span></label></fieldset>
-        </section>
+        </details>
+        </div>
+        <div class="composer-footer">
         <div id="form-error" class="error-message" role="alert" hidden></div>
         <button id="generate-button" class="primary-button generate-button" type="submit"><svg><use href="#i-spark"/></svg><span>Write my introduction</span><svg class="button-arrow"><use href="#i-arrow"/></svg></button>
         <p class="privacy-note"><svg><use href="#i-lock"/></svg>Files aren’t saved. Generation sends your context to OpenRouter and its model provider. <button id="privacy-button" type="button">Details</button></p>
+        </div>
       </form>
       <aside class="preview-column" aria-label="Email preview">
         <div class="preview-sticky">
@@ -88,8 +95,8 @@ You</textarea><div id="loading-state" class="loading-state" hidden><div class="l
             <div class="email-footer"><span id="word-count">Your draft will appear here</span><button id="copy-button" class="copy-button" type="button" disabled><svg><use href="#i-copy"/></svg><span>Copy email</span></button></div>
           </section>
           <div id="output-actions" class="output-actions" hidden><button id="regenerate-button" type="button" class="text-button"><svg><use href="#i-refresh"/></svg>New version</button><button id="shorten-button" type="button" class="text-button">Make it shorter</button><button id="download-button" type="button" class="text-button"><svg><use href="#i-download"/></svg>Download</button></div>
-          <div id="alternative-subjects" class="subject-options" hidden><h3>Another way to open</h3><div id="subject-buttons"></div></div>
-          <div id="matches-panel" class="matches-panel" hidden><div class="matches-heading"><svg><use href="#i-spark"/></svg><h3>The connection behind the words</h3></div><div id="matches"></div><p id="model-note"></p></div>
+          <details id="alternative-subjects" class="subject-options output-details" hidden><summary>Alternative subject lines</summary><div id="subject-buttons"></div></details>
+          <details id="matches-panel" class="matches-panel output-details" hidden><summary class="matches-heading"><svg><use href="#i-spark"/></svg><span>How your experience fits this JD</span></summary><div id="matches"></div><p id="model-note"></p></details>
           <div class="quiet-note" id="quiet-note"><span class="note-line"></span><p>Personal beats generic.<br><strong>Every single time.</strong></p><span class="note-line"></span></div>
           <p class="preview-disclaimer" id="preview-disclaimer">An illustrative preview. Your email will use your own context.</p>
           <div id="connection-status" class="connection-status" role="status"><span class="status-dot"></span>Checking AI connection…</div>
