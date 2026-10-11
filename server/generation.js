@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+export const DEFAULT_MODEL = 'nvidia/nemotron-3-super-120b-a12b:free';
+
 export const inputSchema = z.object({
   company: z.string().trim().min(1, 'Add a company name.').max(150),
   role: z.string().trim().min(1, 'Add the role you are applying for.').max(150),

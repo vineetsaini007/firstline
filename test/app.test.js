@@ -31,6 +31,7 @@ test('serves workspace and reports missing AI setup without exposing configurati
   assert.equal((await request('/')).status, 200);
   const config = await (await request('/api/config')).json();
   assert.equal(config.configured, false);
+  assert.equal(config.model, 'nvidia/nemotron-3-super-120b-a12b:free');
   assert.ok(!Object.keys(config).some(key => /key|password/i.test(key)));
   const response = await request('/api/generate', post(input));
   assert.equal(response.status, 503);
@@ -49,7 +50,7 @@ test('generates a validated draft and enforces free-only routing and the daily r
     calls++;
     assert.equal(url, 'https://openrouter.ai/api/v1/chat/completions');
     const body = JSON.parse(options.body);
-    assert.equal(body.model, 'openrouter/free');
+    assert.equal(body.model, 'nvidia/nemotron-3-super-120b-a12b:free');
     assert.deepEqual(body.provider.max_price, { prompt: 0, completion: 0 });
     assert.ok(body.messages[0].content.includes('Never invent'));
     return provider(draft)();

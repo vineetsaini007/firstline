@@ -6,7 +6,7 @@ import mammoth from 'mammoth';
 import { PDFParse } from 'pdf-parse';
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
-import { inputSchema, generateEmail, AppError } from './generation.js';
+import { inputSchema, generateEmail, AppError, DEFAULT_MODEL } from './generation.js';
 
 const publicDir = fileURLToPath(new URL('../public/', import.meta.url));
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024, files: 1, fields: 0 } });
@@ -39,7 +39,7 @@ export function createApp({ env = process.env, fetchImpl = fetch } = {}) {
   };
   const protect = (req, res, next) => authenticated(req) ? next() : res.status(401).json({ error: 'Enter the app password to continue.' });
   app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
-  app.get('/api/config', (req, res) => res.json({ configured: Boolean(env.OPENROUTER_API_KEY), protected: Boolean(env.APP_PASSWORD), authenticated: authenticated(req), model: env.OPENROUTER_MODEL || 'openrouter/free' }));
+  app.get('/api/config', (req, res) => res.json({ configured: Boolean(env.OPENROUTER_API_KEY), protected: Boolean(env.APP_PASSWORD), authenticated: authenticated(req), model: env.OPENROUTER_MODEL || DEFAULT_MODEL }));
   app.post('/api/unlock', rateLimit({ windowMs: 15 * 60000, limit: 10, standardHeaders: 'draft-8', legacyHeaders: false, message: { error: 'Too many password attempts. Try again in 15 minutes.' } }), (req, res) => {
     if (!env.APP_PASSWORD || typeof req.body?.password !== 'string' || !equal(req.body.password, env.APP_PASSWORD)) return res.status(401).json({ error: 'That password doesn’t match. Try again.' });
     const expires = String(Date.now() + 12 * 3600000);
@@ -86,7 +86,7 @@ export function createApp({ env = process.env, fetchImpl = fetch } = {}) {
     if (day !== today) { day = today; used = 0; }
     if (used >= dailyLimit) throw new AppError(429, 'This app’s daily free-model allowance is used up. Please try tomorrow.');
     used++;
-    res.json(await generateEmail(parsed.data, { apiKey: env.OPENROUTER_API_KEY, model: env.OPENROUTER_MODEL || 'openrouter/free', fetchImpl }));
+    res.json(await generateEmail(parsed.data, { apiKey: env.OPENROUTER_API_KEY, model: env.OPENROUTER_MODEL || DEFAULT_MODEL, fetchImpl }));
   });
   app.use(express.static(publicDir));
   app.use((error, req, res, next) => {

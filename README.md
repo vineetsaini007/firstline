@@ -11,7 +11,7 @@ Firstline turns a resume and a job description into a concise, personal cold ema
 - Company, position, job description, recipient, career stage, and extra context.
 - PDF, DOCX, and TXT resume uploads, processed in memory. Extracted text is editable before generation.
 - Professional, warm, and confident tones; 60–90 or 90–120 word drafts.
-- Free OpenRouter models only. Default: `openrouter/free`. Paid model IDs are rejected and provider token prices are capped at zero.
+- Free OpenRouter models only. Default: NVIDIA Nemotron 3 Super (`nvidia/nemotron-3-super-120b-a12b:free`). Paid model IDs are rejected and provider token prices are capped at zero.
 - Editable subject and body, alternative subjects, new versions, short drafts, copy, and text download.
 - Explicit JD-to-experience connections in the email, with expandable verbatim JD/resume evidence and the corresponding email sentence. The server checks that source quotes and the cited sentence exist.
 - Clearly labeled fictional example for exploring the product without an API key.
@@ -37,7 +37,7 @@ Visit http://localhost:3000. Without an API key, the interface, example, and res
 
 Create an API key at [OpenRouter](https://openrouter.ai/settings/keys). Store it in the server environment as `OPENROUTER_API_KEY`. Never commit it or put it in client code.
 
-`OPENROUTER_MODEL=openrouter/free` routes to an available free model. To select one explicitly, use an available OpenRouter model ID ending in `:free`. The application rejects paid model IDs and does not use paid fallback models.
+`OPENROUTER_MODEL=nvidia/nemotron-3-super-120b-a12b:free` selects Nemotron 3 Super explicitly for consistent model selection. This is also the default when the variable is unset. To change models, use an available OpenRouter model ID ending in `:free`; `openrouter/free` remains an optional router. The application rejects paid model IDs and does not use paid fallback models.
 
 The free plan currently has a 50-request daily allowance and provider capacity can vary. The app defaults to a conservative 45-request daily cap. Failed requests also consume the app cap. Its counter and per-IP rate limits are in memory and reset on process restart, so they are not an account-wide quota guarantee. OpenRouter independently enforces account limits. Free models can be slower or temporarily unavailable; the UI reports this without switching to paid inference. See [current pricing](https://openrouter.ai/pricing/) and [limits](https://openrouter.ai/docs/api_reference/limits).
 
@@ -48,7 +48,7 @@ The repository contains a `render.yaml` Blueprint for a free Node web service.
 1. In Render, create a Blueprint from this GitHub repository, or create a Web Service.
 2. Use build command `npm ci --omit=dev` and start command `npm start`.
 3. Add `OPENROUTER_API_KEY` as a secret environment variable.
-4. Set `OPENROUTER_MODEL` to `openrouter/free`.
+4. Set `OPENROUTER_MODEL` to `nvidia/nemotron-3-super-120b-a12b:free`.
 5. Recommended for a personal workspace: set a long, unique `APP_PASSWORD`. This protects generation and uploads through an HttpOnly session cookie. This is shared workspace access, not individual user accounts.
 6. Use `/api/health` for the health check. The app binds to `0.0.0.0` and Render’s `PORT`.
 7. Deploy and verify real generation with a fictional resume before using personal data.
@@ -79,7 +79,7 @@ npm audit --omit=dev
 
 Tests use an injected mock provider and real PDF/DOCX/TXT extraction. They do not call OpenRouter or consume your quota. They cover authentication, input validation, free-only model routing, daily/per-IP limits, cross-site request rejection, provider failures, output validation, and upload boundaries. Live inference requires a configured key and is a separate deployment verification step.
 
-The first Render deployment was verified on October 10, 2026 with fictional applicant data. OpenRouter returned a real 56-word draft using `nvidia/nemotron-3-super-120b-a12b:free`; copy and text download were verified in the deployed app. The default router may select a different free model on subsequent requests.
+The first Render deployment was verified on October 10, 2026 with fictional applicant data. OpenRouter returned a real 56-word draft using `nvidia/nemotron-3-super-120b-a12b:free`; copy and text download were verified in the deployed app. Nemotron 3 Super is now selected explicitly by default.
 
 Mammoth’s unused command-line parser is overridden to argparse 2 to avoid the older parser’s vulnerable `sprintf-js` dependency. The actual document conversion path is covered by a real DOCX extraction test.
 
